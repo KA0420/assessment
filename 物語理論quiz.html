@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>物語の構造と解釈：総合理解度クイズ</title>
+    <style>
+        :root {
+            --primary-color: #0d47a1; /* 濃い青 */
+            --secondary-color: #1976d2; /* 青 */
+            --accent-color: #d32f2f; /* 赤系のアクセント */
+            --background-color: #f5f8fa;
+            --text-color: #333;
+            --white-color: #ffffff;
+            --light-gray: #f0f2f5;
+            --border-color: #d9d9d9;
+            --correct-color: #4caf50;
+            --incorrect-color: #f44336;
+        }
+
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap');
+
+        body {
+            font-family: 'Noto Sans JP', 'Yu Gothic UI', 'Hiragino Kaku Gothic ProN', Meiryo, sans-serif;
+            line-height: 1.7;
+            color: var(--text-color);
+            background-color: var(--background-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 100%;
+            margin: 20px auto;
+            padding: 2rem;
+            background-color: var(--white-color);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+            border-radius: 12px;
+            border-top: 5px solid var(--primary-color);
+        }
+
+        h1, h2 {
+            color: var(--primary-color);
+            text-align: center;
+            border-bottom: 2px solid var(--secondary-color);
+            padding-bottom: 10px;
+            margin-top: 0;
+        }
+        h1 {
+            font-size: 2em;
+        }
+        h2 {
+            font-size: 1.5em;
+        }
+        
+        /* --- Selection Screen --- */
+        #selection-container h2 {
+            margin-bottom: 2rem;
+        }
+        .selection-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+        }
+        .selection-btn {
+            padding: 1.5rem 1rem;
+            font-size: 1.1em;
+            font-weight: 700;
+            cursor: pointer;
+            border: 2px solid var(--secondary-color);
+            background-color: var(--white-color);
+            color: var(--secondary-color);
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            line-height: 1.3;
+        }
+        .selection-btn:hover {
+            background-color: var(--primary-color);
+            color: var(--white-color);
+            transform: translateY(-5px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .selection-btn .count {
+            font-size: 0.8em;
+            opacity: 0.8;
+            margin-top: 5px;
+        }
+
+        /* --- Quiz Screen --- */
+        #quiz-container {
+            display: none;
+        }
+        #progress-text {
+            text-align: center;
+            font-size: 1.1em;
+            font-weight: 700;
+            color: var(--secondary-color);
+            margin-bottom: 1rem;
+        }
+        #question-text {
+            font-size: 1.4em;
+            font-weight: 700;
+            margin-bottom: 2rem;
+            text-align: left;
+            line-height: 1.6;
+        }
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+        .option-btn {
+            width: 100%;
+            padding: 1rem;
+            font-size: 1em;
+            text-align: left;
+            cursor: pointer;
+            border: 2px solid var(--border-color);
+            background-color: var(--light-gray);
+            border-radius: 8px;
+            transition: all 0.2s ease;
+        }
+        .option-btn:not(:disabled):hover {
+            border-color: var(--secondary-color);
+            background-color: #e3f2fd;
+        }
+        .option-btn.correct {
+            background-color: #e8f5e9;
+            border-color: var(--correct-color);
+            color: #2e7d32;
+            font-weight: 700;
+        }
+        .option-btn.incorrect {
+            background-color: #fbe9e7;
+            border-color: var(--incorrect-color);
+            color: #c62828;
+            font-weight: 700;
+        }
+        .option-btn:disabled {
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        /* --- Explanation and Next Button --- */
+        #explanation-container {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background-color: #fffde7;
+            border-left: 5px solid #fbc02d;
+            border-radius: 4px;
+            display: none;
+        }
+        #explanation-text {
+            margin: 0;
+            font-size: 1.05em;
+        }
+        #next-btn {
+            display: block;
+            width: 100%;
+            padding: 1rem;
+            font-size: 1.2em;
+            font-weight: 700;
+            margin-top: 2rem;
+            cursor: pointer;
+            border: none;
+            background-color: var(--primary-color);
+            color: var(--white-color);
+            border-radius: 8px;
+            transition: background-color 0.3s;
+            display: none;
+        }
+        #next-btn:hover {
+            background-color: #0d47a1;
+        }
+
+        /* --- Score Screen --- */
+        #score-container {
+            display: none;
+            text-align: center;
+        }
+        #score-text {
+            font-size: 2.5em;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin: 1rem 0;
+        }
+        #score-details {
+            font-size: 1.2em;
+            margin-bottom: 2rem;
+        }
+        #restart-btn {
+            padding: 1rem 2rem;
+            font-size: 1.2em;
+            font-weight: 700;
+            cursor: pointer;
+            border: none;
+            background-color: var(--accent-color);
+            color: var(--white-color);
+            border-radius: 8px;
+            transition: background-color 0.3s;
+        }
+        #restart-btn:hover {
+            background-color: #b71c1c;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 1.5rem;
+            }
+            h1 { font-size: 1.8em; }
+            h2 { font-size: 1.3em; }
+            #question-text { font-size: 1.2em; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div id="selection-container">
+            <h1>物語の構造と解釈<br>総合理解度クイズ</h1>
+            <h2>問題数を選択してください</h2>
+            <div class="selection-grid">
+                <button class="selection-btn" onclick="startQuiz(10)">10問<span class="count">気軽に挑戦</span></button>
+                <button class="selection-btn" onclick="startQuiz(30)">30問<span class="count">じっくり挑戦</span></button>
+                <button class="selection-btn" onclick="startQuiz(40)">40問<span class="count">実力試し</span></button>
+                           </div>
+        </div>
+
+        <div id="quiz-container">
+            <p id="progress-text"></p>
+            <h2 id="question-text"></h2>
+            <div class="options-grid" id="options-container">
+                </div>
+            <div id="explanation-container">
+                <p id="explanation-text"></p>
+            </div>
+            <button id="next-btn" onclick="nextQuestion()">次の問題へ</button>
+        </div>
+
+        <div id="score-container">
+            <h2>クイズ終了！</h2>
+            <p id="score-details"></p>
+            <p id="score-text"></p>
+            <button id="restart-btn" onclick="restartQuiz()">問題選択に戻る</button>
+        </div>
+    </div>
+
+    <script>
+        // --- データ処理と内容 ---
+        const allQuestions = [
+            // --- 第1回：物語とは何か ---
+            {
+                question: "物語の最も基本的な構造の一つで、日常から非日常へ旅立ち、再び日常へ戻ってくる形式を何といいますか？",
+                options: ["行きて帰りし物語", "単一神話（モノミス）", "貴種流離譚", "英雄の旅"],
+                answer: "行きて帰りし物語",
+                explanation: "「行きて帰りし物語」は、J.R.R.トールキンの『ホビットの冒険』の副題としても知られ、物語の最も単純で普遍的な構造です。ディズニーランドのアトラクションの多くがこの「日常 → 非日常 → 日常」という構造を体験させてくれます。"
+            },
+            {
+                question: "ジョゼフ・キャンベルが提唱し、『スター・ウォーズ』の骨格にもなった、世界中の英雄神話に共通する物語の原型を何と呼びますか？",
+                options: ["単一神話（モノミス）", "行きて帰りし物語", "物語のリテラシー", "鯨の胎内"],
+                answer: "単一神話（モノミス）",
+                explanation: "「単一神話（モノミス）」、通称「英雄の旅（ヒーローズ・ジャーニー）」は、神話学者ジョーゼフ・キャンベルが提唱した理論です。「出立→イニシエーション→帰還」の三部構成を持ち、現代の多くの物語の設計図として利用されています。"
+            },
+            // --- 第2回：都市伝説・噂話・世間話 ---
+            {
+                question: "エドガール・モランの『オルレアンのうわさ』によれば、都市伝説が成立する3つの要素に含まれないものはどれですか？",
+                options: ["歴史的な事実", "社会的な不安", "物語の論理（文法）", "差別や偏見"],
+                answer: "歴史的な事実",
+                explanation: "エドガール・モランによれば、都市伝説は①社会的な不安、②物語の論理（文法）、③差別や偏見という3つの要素が結びつくことで成立します。根拠となる歴史的な事実は必要ありません。"
+            },
+            {
+                question: "ロラン・バルトが提唱した、記事の内部情報だけで完結し背景知識を必要としないゴシップ的な記事の形式を何と呼びますか？",
+                options: ["雑報", "情報", "内証話", "物語の文法"],
+                answer: "雑報",
+                explanation: "ロラン・バルトは、記事を内部情報だけで完結する「雑報（fait divers）」と、背景知識が必要な「情報（information）」に分類しました。都市伝説は、この「雑報」の形式を持つため、それだけで完結した話として受け入れられやすくなります。"
+            },
+            // --- 第3回：世界と趣向 ---
+            {
+                question: "江戸時代の歌舞伎や人形浄瑠璃において、作り手と受け手が共有する作品のキャラクターや背景設定のことを何と呼びますか？",
+                options: ["世界", "趣向", "コモンズ", "竪筋"],
+                answer: "世界",
+                explanation: "「世界」とは、現代の「世界観」や「世界線」に近い概念で、物語の土台となる共有された設定を指します。これに対し、新しいアイデアや切り口を加えることを「趣向」と呼びます。"
+            },
+            {
+                question: "『仮名手本忠臣蔵』は、現実の「赤穂事件」という出来事（趣向）を、どの「世界」（時代設定）に置き換えて作られましたか？",
+                options: ["太平記（室町時代）", "源平合戦（平安時代）", "戦国時代", "江戸時代"],
+                answer: "太平記（室町時代）",
+                explanation: "『仮名手本忠臣蔵』は、当時の幕府による検閲を避けるため、現実の「赤穂事件」を、観客がよく知る軍記物語「太平記」の世界（室町時代）に置き換えて創作されました。"
+            },
+            // --- 第4回：口承文芸と語りの理論 ---
+            {
+                question: "昔話の始まりの「むかしむかし…」という決まり文句を何と呼びますか？",
+                options: ["発端句", "結末句", "フォーミュラ", "テーマ"],
+                answer: "発端句",
+                explanation: "物語の始まりを示す定型句を「発端句」、終わりを示すものを「結末句」と呼びます。これらは、物語が「虚構」であることを宣言し、現実世界と区切るための重要な役割を持っていました。"
+            },
+            {
+                question: "口承文芸の語り手が、物語を暗記するのではなく、決まり文句のデータベース（フォーミュラ）を用いて即興的に物語を生成する技術を何といいますか？",
+                options: ["口頭構成法", "シンローグ", "ダイアローグ", "ポリローグ"],
+                answer: "口頭構成法",
+                explanation: "「口頭構成法（オーラル・コンポジション）」は、語り手が物語全体を暗記するのではなく、類型的な場面（テーマ）とそれを表現する決まり文句（フォーミュラ）を組み合わせて、その都度物語を生成する技術です。"
+            },
+            // --- 第5回：ゲームとしての物語 占いとしての物語 ---
+            {
+                question: "ライトノベル『ロードス島戦記』の原作となった、TRPGのプレイ記録を文章化した形式を何と呼びますか？",
+                options: ["リプレイ", "ゲームブック", "シナリオ", "ログ"],
+                answer: "リプレイ",
+                explanation: "「リプレイ」は、テーブルトークRPG（TRPG）を遊んでいる様子をそのまま記録し、文字に起こしたものです。『ロードス島戦記』は、このリプレイ企画が人気を博し、小説化されました。"
+            },
+            {
+                question: "フィリップ・K・ディックが代表作『高い城の男』の執筆において、物語の重要な分岐点を委ねた占いの手法は何ですか？",
+                options: ["易経", "タロットカード", "占星術", "水晶占い"],
+                answer: "易経",
+                explanation: "フィリップ・K・ディックは、作中の登場人物が行動を決める際、作者自身も実際にコインを投げて「易経」による占いを行い、その結果に従って物語を執筆したと告白しています。"
+            },
+            // --- 第6回：通過儀礼と物語 ---
+            {
+                question: "人生の節目で、ある状態から別の状態へ移行する際に行われる儀式を、文化人類学の用語で何といいますか？",
+                options: ["通過儀礼", "人生儀礼", "加入礼", "祭り"],
+                answer: "通過儀礼",
+                explanation: "「通過儀礼」は、ファン・ヘネップが提唱した概念で、人が人生の節目で、ある状態から別の状態へ、あるいはある集団から別の集団へと移行する際に行われる儀式全般を指します。"
+            },
+            {
+                question: "文化人類学者ヴィクター・ターナーが提唱した、通過儀礼の第二段階（過渡期）における、日常の社会構造から切り離された境界上の状態を指す言葉は何ですか？",
+                options: ["リミナリティ", "コムニタス", "マルシュ", "ストラクチャー"],
+                answer: "リミナリティ",
+                explanation: "ヴィクター・ターナーは、通過儀礼の第二段階の境界的な状態を「リミナリティ」、そこで生まれる平等な共同体感覚を「コムニタス」と呼びました。「リミナリティ」は、物語の主人公が日常から離れて冒険する期間に対応します。"
+            },
+            // --- 第7回：折口信夫の物語要素論 ---
+            {
+                question: "折口信夫が提唱した、罪を犯した貴い生まれの人物が故郷を追われ流浪する、日本文学に繰り返し現れる物語の型を何といいますか？",
+                options: ["貴種流離譚", "まれびと", "うつぼ舟", "物語要素"],
+                answer: "貴種流離譚",
+                explanation: "「貴種流離譚（きしゅりゅうりたん）」は、折口信夫が最も重要視した物語要素です。『源氏物語』の光源氏や『竹取物語』のかぐや姫がその代表例で、物語は主人公が「罪」を犯すことから始まります。"
+            },
+            {
+                question: "折口信夫が提唱した、共同体の外部から定期的に来訪し、豊穣や幸福をもたらす神を指す概念は何ですか？",
+                options: ["まれびと", "貴種", "守護神", "氏神"],
+                answer: "まれびと",
+                explanation: "「まれびと」は、異界からやってくる来訪神を指す折口民俗学の中核概念です。秋田のナマハゲなどがその具体例です。「まれびと」も「貴種流離譚」も、「境界を越える」ことで物語を発生させる根源的な力を持っています。"
+            },
+            // --- 第8回：ファミリーロマンスとフロイド派の物語論 ---
+            {
+                question: "子供が「自分は今の親の本当の子ではないのかもしれない」と想像する普遍的な心理を、フロイトは何と名付けましたか？",
+                options: ["ファミリーロマンス", "エディプスコンプレックス", "貰い子妄想", "英雄願望"],
+                answer: "ファミリーロマンス",
+                explanation: "フロイトは、子供が現実の親をより理想的な親に置き換える空想を「ファミリーロマンス（家族小説）」と呼びました。これが、多くの「捨て子」や「貴種の子」の物語の源泉になっているとフロイト派は考えました。"
+            },
+            {
+                question: "日本の国産み神話で、不具の子であったために葦舟に入れられ流された神は誰ですか？",
+                options: ["ヒルコ", "スクナヒコナ", "スサノオ", "オオクニヌシ"],
+                answer: "ヒルコ",
+                explanation: "イザナキとイザナミの最初の子であるヒルコ（水蛭子）は、不具であったため葦舟で流されます。この物語はオットー・ランクが分析した「英雄誕生の神話」の型に一致しており、後に民間伝承の中で「恵比寿（えびす）」神として復活します。"
+            },
+            // --- 第9回：民話の形態学 ---
+            {
+                question: "ウラジーミル・プロップが、物語を構成する不変の要素として着目した、登場人物の「行為」を指す概念は何ですか？",
+                options: ["機能", "モチーフ", "話型", "定項"],
+                answer: "機能",
+                explanation: "プロップは、物語の筋の展開にとってどのような意味を持つかという観点から登場人物の「行為」を規定し、それを「機能（Function）」と名付けました。彼は、ロシア魔法民話には31の機能しかないことを発見しました。"
+            },
+            {
+                question: "プロップの研究の理論的源流となった、多様な生物の形の中に共通の設計図「原型」を見出そうとした文豪ゲーテの学問は何ですか？",
+                options: ["形態学", "博物学", "分類学", "発生学"],
+                answer: "形態学",
+                explanation: "プロップは、文豪ゲーテが提唱した生物学の「形態学（モルフォロギー）」に大きな影響を受けました。ゲーテが植物の「原型」を探ったように、プロップは無数の昔話の背後にある共通の「原型」を、機能分析によって解き明かそうとしたのです。"
+            },
+            // --- 第10回：プロップの理論の発展 ---
+            {
+                question: "プロップ理論を発展させたグレマスが提唱した、物語の登場人物の役割を6つに分類したモデルを何といいますか？",
+                options: ["行為項モデル", "モチーフ素モデル", "三段階モデル", "機能モデル"],
+                answer: "行為項モデル",
+                explanation: "グレマスは、登場人物の役割を「主体」「客体」「送り手」「受け手」「補助者」「反対者」という6つの「行為項」に整理し、その関係性を図式化しました。これにより、どんな物語の構造も普遍的に分析できるようになりました。"
+            },
+            {
+                question: "アラン・ダンデスが、プロップの「機能」をさらに根源的な単位として捉え直し、物語の「原子」のようなものとして名付けた概念は何ですか？",
+                options: ["モチーフ素", "行為項", "神話素", "機能素"],
+                answer: "モチーフ素",
+                explanation: "ダンデスは、プロップの「機能」を「モチーフ素（Motifeme）」と呼びました。彼は、このモチーフ素が「欠乏↔欠乏の解消」のように基本的に「対」で機能し、その連鎖によって物語が構成されるという、よりシンプルなモデルを提示しました。"
+            },
+            // --- 第11回：原質神話論とヒーローズ・ジャーニー ---
+            {
+                question: "ジョゼフ・キャンベルの「原質神話論」をハリウッド映画の脚本術として体系化し、「ヒーローズ・ジャーニー」として広めた人物は誰ですか？",
+                options: ["クリストファー・ボグラー", "ジョージ・ルーカス", "ジェイムス・ジョイス", "ウラジーミル・プロップ"],
+                answer: "クリストファー・ボグラー",
+                explanation: "脚本コンサルタントのクリストファー・ボグラー（ホグラー）は、キャンベルの理論をより実践的で分かりやすい12のステージに整理し直し、「ヒーローズ・ジャーニー」として体系化しました。これは現代の物語創作に絶大な影響を与えています。"
+            },
+            {
+                question: "キャンベルの原質神話における「鯨の胎内」のステージが象徴しているものは何ですか？",
+                options: ["死と再生", "最初の試練", "賢者との出会い", "帰還の決意"],
+                answer: "死と再生",
+                explanation: "「鯨の胎内」は、英雄が境界を越えた後、一度死んで再生するために、巨大な生物に飲み込まれたり、地下迷宮に入ったりする段階です。これは「母胎」への回帰と、そこからの再生を象徴しています。"
+            },
+            // --- 第12回：昔話の文芸学 ---
+            {
+                question: "マックス・リュティが提唱した、昔話の登場人物の身体や内面に「奥行き」がないという表現上の特徴を何と呼びますか？",
+                options: ["平面性", "一次元性", "抽象様式", "孤立性"],
+                answer: "平面性",
+                explanation: "「平面性」は、昔話の登場人物が複雑な心理や加齢、痛覚を持たず、まるで紙に描かれた図形のように描かれる特徴を指します。リュティはこれを昔話の基本的な様式と考えました。"
+            },
+            {
+                question: "小澤俊夫が、昔話の「三の法則」が酷似していると指摘した、音楽の「A・A・B」形式の構成を何といいますか？",
+                options: ["バーフォーム", "ソナタ形式", "ロンド形式", "フーガ"],
+                answer: "バーフォーム",
+                explanation: "小澤俊夫は、昔話の3回の試練のうち3回目がクライマックスとなる構造が、音楽の「バーフォーム（Bar form）」という「タン、タン、ターン」のリズムを持つ形式と酷似していると指摘し、昔話の音楽性を明らかにしました。"
+            },
+            // --- 第13回：レヴィ＝ストロースと神話の構造分析 ---
+            {
+                question: "レヴィ＝ストロースが神話分析に用いた、物語を「主語＋述語」からなる短い文章の断片に分解した最小単位を何と呼びますか？",
+                options: ["神話素（ミテム）", "モチーフ素", "機能", "行為項"],
+                answer: "神話素（ミテム）",
+                explanation: "レヴィ＝ストロースは、神話を短い文章の断片である「神話素（ミテム）」に分解し、それらを時系列から解放してテーマごとに再配列することで、神話の深層的な構造と意味を読み解きました。"
+            },
+            {
+                question: "レヴィ＝ストロースによれば、神話が持つ最も重要な機能は何ですか？",
+                options: ["社会が抱える根源的な矛盾を論理的に媒介すること", "道徳的な教訓を伝えること", "歴史的な事実を記録すること", "娯楽を提供すること"],
+                answer: "社会が抱える根源的な矛盾を論理的に媒介すること",
+                explanation: "レヴィ＝ストロースはオイディプス神話の分析を通して、神話は矛盾を解決するのではなく、その矛盾を理解し、受け入れるための論理モデルとして機能すると結論付けました。"
+            },
+            // --- 第14回：無意識と物語 ---
+            {
+                question: "ユング心理学において、個人の体験を超えた人類に共通する普遍的な心の領域を何と呼びますか？",
+                options: ["集合的無意識", "個人的無意識", "意識", "自我"],
+                answer: "集合的無意識",
+                explanation: "ユングは、フロイトの「無意識」を「個人的無意識」と、人類共通の心の遺産である「集合的無意識」に分けました。神話や夢に現れる共通のイメージ「元型」は、この集合的無意識に由来すると考えられています。"
+            },
+            {
+                question: "ユング心理学における究極の目標であり、意識と無意識が統合され「本来の自分自身」を実現するプロセスのことを何といいますか？",
+                options: ["個性化", "自己分析", "元型化", "社会化"],
+                answer: "個性化",
+                explanation: "「個性化（Individuation）」は、分割不可能な「個」として完成された状態、つまり「自己実現」への道のりを指します。ユング派は、物語をこの個性化のプロセスの反映として解釈します。"
+            },
+            // --- 第15回：拡張する物語 ---
+            {
+                question: "現実世界そのものをゲーム盤として、プレイヤーが物語の登場人物のように謎を解き明かしていく体験型のゲームを何と呼びますか？",
+                options: ["ARG（代替現実ゲーム）", "TRPG（テーブルトークRPG）", "MMORPG", "ゲームブック"],
+                answer: "ARG（代替現実ゲーム）",
+                explanation: "ARG（Alternate Reality Game）は、ウェブサイトや現実の場所などを舞台に、虚構と現実を交差させながら物語を進めるゲームです。物語がメディアの枠を越える「物語の拡張」の代表例です。"
+            },
+            {
+                question: "物語の拡張がもたらすリスク管理の重要性を学ぶ上で、講義で参考にされた心理療法は何ですか？",
+                options: ["箱庭療法", "精神分析療法", "認知行動療法", "来談者中心療法"],
+                answer: "箱庭療法",
+                explanation: "箱庭療法は、「プレイルーム」と「箱庭」という二重の「枠」を設定することで、クライアントの内面世界が暴走するのを防ぎます。このリスク管理の仕組みは、現実と虚構の境界が曖昧になりがちな「物語の拡張」の危険性を考える上で重要な示唆を与えます。"
+            },
+            // ダミー問題をいくつか追加して問題数を増やす
+            {
+                question: "マックス・リュティが提唱した、昔話のキャラクターやモチーフから具体的な中身を抜き、あらゆる意味を代入可能にする表現上の特徴を何といいますか？",
+                options: ["純化", "平面性", "孤立性", "抽象様式"],
+                answer: "純化",
+                explanation: "「純化」は、昔話のモチーフが「空洞の記号」となり、具体的な中身を持たないことで、かえって時代や文化を超えて多様な解釈を許容する力を持つ、という考え方です。"
+            },
+            {
+                question: "手塚治虫が『ジャングル大帝』で、それまでのアニメキャラクターが持たなかったどのような要素を導入し、日本の物語表現に革命をもたらしましたか？",
+                options: ["成長し死ぬ身体", "言葉を話す能力", "人間との友情", "超人的な力"],
+                answer: "成長し死ぬ身体",
+                explanation: "それまでのアニメキャラクターは「死なない」「成長しない」平面的な存在でした。手塚治虫は、主人公レオに「成長」と「死」という時間と肉体性を与えることで、キャラクターに深い奥行きをもたらし、その後の日本のまんが・アニメの物語性の原点となりました。"
+            },
+            {
+                question: "レヴィ＝ストロースが、神話を生み出す思考様式を「ありあわせの道具で新しいものを作る」ことにたとえて名付けた言葉は何ですか？",
+                options: ["ブリコラージュ", "エンジニアリング", "アルス・コンビナトリア", "シミュラークル"],
+                answer: "ブリコラージュ",
+                explanation: "「ブリコラージュ」はフランス語で「日曜大工」などを意味します。レヴィ＝ストロースは、神話的思考（野生の思考）が、手元にある具体的なモノやコトバをパズルのように組み合わせて世界の構造を説明しようとする、このブリコラージュに似ていると考えました。"
+            },
+            {
+                question: "ユング心理学における元型のうち、社会に適応するために身につける「外的側面」や「仮面」を指すものはどれですか？",
+                options: ["ペルソナ", "影（シャドウ）", "アニマ", "自己（セルフ）"],
+                answer: "ペルソナ",
+                explanation: "「ペルソナ」は、社会的な役割を果たすために人が身につける「仮面」を指す元型です。社会生活に不可欠ですが、これと自己を同一化しすぎると、本当の自分を見失う危険性もあります。"
+            },
+            {
+                question: "プロップの31の機能のうち、主人公が旅の途中で魔法のアイテムや助力を得るきっかけとなる機能は何ですか？",
+                options: ["贈与者の第一機能", "仲介", "謀略", "探り出し"],
+                answer: "贈与者の第一機能",
+                explanation: "「(D)贈与者の第一機能」は、主人公が旅の途中で試練を与えられたり、助けを求められたりする人物（贈与者）に出会う機能です。この後の「(E)主人公の反応」と「(F)呪具の贈与」に繋がり、物語が大きく展開するきっかけとなります。"
+            },
+            {
+                question: "村上春樹のデビュー作に登場し、多くの読者に実在すると信じられた架空の作家の名前は何ですか？",
+                options: ["デレク・ハートフィールド", "ジェイ・ギャツビー", "ホールデン・コールフィールド", "ゴードン・タロック"],
+                answer: "デレク・ハートフィールド",
+                explanation: "村上春樹は『風の歌を聴け』で、架空の作家「デレク・ハートフィールド」をあたかも実在したかのように描き、参考文献まで提示しました。これは、虚構が現実世界に拡張する「物語の拡張」の洗練された文学的事例です。"
+            },
+            {
+                question: "グレマスの行為項モデルにおいて、「主体」が「客体」を手に入れようとすることを妨害する役割を何と呼びますか？",
+                options: ["反対者", "補助者", "送り手", "受け手"],
+                answer: "反対者",
+                explanation: "「反対者」は、主体（主人公）の目的達成を妨害する役割を担う行為項です。これに対し、主体を助ける役割は「補助者」と呼ばれ、両者は「闘争の関係」にあります。"
+            },
+            {
+                question: "ファン・ヘネップが提唱した通過儀礼の三段階モデルに含まれないものはどれですか？",
+                options: ["祝祭", "分離", "過渡", "統合"],
+                answer: "祝祭",
+                explanation: "ファン・ヘネップが提唱した通過儀礼の三段階モデルは「①分離」「②過渡」「③統合」です。「祝祭」は儀礼の一部として行われることはありますが、基本的な構造の段階ではありません。"
+            },
+            {
+                question: "オットー・ランクの「英雄誕生の神話」論と、折口信夫の「貴種流離譚」に共通する中心的なプロットは何ですか？",
+                options: ["高貴な身分の者が追放され、試練を経て帰還する", "身分の低い者が努力で成り上がる", "神が人間に試練を与え、信仰を試す", "異世界の人物が日常の世界を訪れる"],
+                answer: "高貴な身分の者が追放され、試練を経て帰還する",
+                explanation: "ランクの「英雄誕生の神話」と折口の「貴種流離譚」は、文化的な背景は異なりますが、どちらも「高貴な生まれの主人公が、何らかの理由で共同体から追放・流離し、多くの試練を経て最終的に帰還し栄誉を得る」という共通の骨格を持っています。"
+            },
+            {
+                question: "物語が持つ「三の法則」について、3回目の繰り返しが質的に異なり、クライマックスを形成する点に着目し、音楽の「バーフォーム」との類似を指摘した研究者は誰ですか？",
+                options: ["小澤俊夫", "マックス・リュティ", "ウラジーミル・プロップ", "柳田國男"],
+                answer: "小澤俊夫",
+                explanation: "マックス・リュティも「三の法則」に注目しましたが、それを音楽の「バーフォーム（A・A・B形式）」と結びつけ、3回目の繰り返しが持つ音楽的なリズムとアクセントの役割を分析したのは、日本の昔話研究者である小澤俊夫です。"
+            }
+        ];
+
+        // --- クイズのロジック ---
+        let currentQuizQuestions = [];
+        let score = 0;
+        let currentQuestionIndex = 0;
+
+        const selectionContainer = document.getElementById('selection-container');
+        const quizContainer = document.getElementById('quiz-container');
+        const scoreContainer = document.getElementById('score-container');
+        
+        const questionText = document.getElementById('question-text');
+        const optionsContainer = document.getElementById('options-container');
+        const explanationContainer = document.getElementById('explanation-container');
+        const explanationText = document.getElementById('explanation-text');
+        const nextBtn = document.getElementById('next-btn');
+        const progressText = document.getElementById('progress-text');
+
+        const scoreText = document.getElementById('score-text');
+        const scoreDetails = document.getElementById('score-details');
+        
+        // 全問選択ボタンのテキストを設定
+        document.getElementById('all-questions-btn').innerHTML = `全問<span class="count">（${allQuestions.length}問）</span>`;
+
+        function startQuiz(numQuestions) {
+            // シャッフル
+            const shuffled = [...allQuestions].sort(() => Math.random() - 0.5);
+            currentQuizQuestions = shuffled.slice(0, numQuestions);
+            
+            score = 0;
+            currentQuestionIndex = 0;
+
+            selectionContainer.style.display = 'none';
+            scoreContainer.style.display = 'none';
+            quizContainer.style.display = 'block';
+
+            displayQuestion();
+        }
+
+        function displayQuestion() {
+            resetState();
+            const question = currentQuizQuestions[currentQuestionIndex];
+            progressText.innerText = `問題 ${currentQuestionIndex + 1} / ${currentQuizQuestions.length}`;
+            questionText.innerText = question.question;
+
+            // 選択肢も毎回シャッフルして表示
+            const shuffledOptions = [...question.options].sort(() => Math.random() - 0.5);
+
+            shuffledOptions.forEach(option => {
+                const button = document.createElement('button');
+                button.innerText = option;
+                button.classList.add('option-btn');
+                button.addEventListener('click', () => selectAnswer(button, question.answer));
+                optionsContainer.appendChild(button);
+            });
+        }
+
+        function resetState() {
+            nextBtn.style.display = 'none';
+            explanationContainer.style.display = 'none';
+            while (optionsContainer.firstChild) {
+                optionsContainer.removeChild(optionsContainer.firstChild);
+            }
+        }
+
+        function selectAnswer(selectedButton, correctAnswer) {
+            const selectedAnswer = selectedButton.innerText;
+            
+            // 全てのボタンを無効化
+            Array.from(optionsContainer.children).forEach(button => {
+                button.disabled = true;
+                // 正解のボタンをハイライト
+                if (button.innerText === correctAnswer) {
+                    button.classList.add('correct');
+                }
+            });
+
+            if (selectedAnswer === correctAnswer) {
+                score++;
+            } else {
+                selectedButton.classList.add('incorrect');
+            }
+            
+            // 解説を表示
+            explanationText.innerText = currentQuizQuestions[currentQuestionIndex].explanation;
+            explanationContainer.style.display = 'block';
+            
+            // 次へボタンを表示
+            nextBtn.style.display = 'block';
+        }
+
+        function nextQuestion() {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < currentQuizQuestions.length) {
+                displayQuestion();
+            } else {
+                showScore();
+            }
+        }
+
+        function showScore() {
+            quizContainer.style.display = 'none';
+            scoreContainer.style.display = 'block';
+
+            const percentage = Math.round((score / currentQuizQuestions.length) * 100);
+            scoreDetails.innerText = `${currentQuizQuestions.length}問中 ${score}問正解`;
+            scoreText.innerText = `正解率: ${percentage}%`;
+        }
+        
+        function restartQuiz() {
+            scoreContainer.style.display = 'none';
+            selectionContainer.style.display = 'block';
+        }
+
+    </script>
+</body>
+</html>
